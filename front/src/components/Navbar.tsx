@@ -7,7 +7,7 @@ const Navbar = () => {
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <div className="text-xl font-bold text-gray-800 flex items-center gap-2">
-              <span role="img" aria-label="crystal ball" className="text-2xl">🏡</span>
+              <span role="img" aria-label="crystal ball" className="text-2xl">🏕️</span>
               Property Creator
             </div>
           </div>
