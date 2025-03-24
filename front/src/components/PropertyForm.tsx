@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ImageUpload, ImageFile } from './ImageUpload';
+import { FileUpload, ImageFile } from './FileUpload';
 
 interface UrlField {
   id: number;
@@ -305,7 +305,7 @@ const PropertyForm = () => {
         </div>
 
         {/* Image Upload Component */}
-        <ImageUpload
+        <FileUpload
           images={images}
           onImagesChange={setImages}
           maxImages={MAX_IMAGES}

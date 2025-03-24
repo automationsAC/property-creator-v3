@@ -6,15 +6,17 @@ export interface ImageFile {
   preview: string;
 }
 
-interface ImageUploadProps {
+interface FileUploadProps {
   images: ImageFile[];
   onImagesChange: (images: ImageFile[]) => void;
   maxImages?: number;
 }
 
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const ACCEPTED_DOCUMENT_TYPES = ['application/pdf', 'text/plain', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+const ACCEPTED_TYPES = [...ACCEPTED_IMAGE_TYPES, ...ACCEPTED_DOCUMENT_TYPES];
 
-export const ImageUpload: React.FC<ImageUploadProps> = ({
+export const FileUpload: React.FC<FileUploadProps> = ({
   images,
   onImagesChange,
   maxImages = 5
@@ -58,17 +60,19 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
   };
 
   const handleFiles = (files: File[]) => {
-    const validImageFiles = files.filter(file =>
-      ACCEPTED_IMAGE_TYPES.includes(file.type)
+    const validFiles = files.filter(file =>
+      ACCEPTED_TYPES.includes(file.type)
     );
 
     const remainingSlots = maxImages - images.length;
-    const filesToAdd = validImageFiles.slice(0, remainingSlots);
+    const filesToAdd = validFiles.slice(0, remainingSlots);
 
     const newImages: ImageFile[] = filesToAdd.map((file, index) => ({
       id: Date.now() + index,
       file,
-      preview: URL.createObjectURL(file)
+      preview: ACCEPTED_IMAGE_TYPES.includes(file.type)
+        ? URL.createObjectURL(file)
+        : '' // No preview for documents
     }));
 
     onImagesChange([...images, ...newImages]);
@@ -93,7 +97,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
         <input
           type="file"
           id="images"
-          accept={ACCEPTED_IMAGE_TYPES.join(',')}
+          accept={ACCEPTED_TYPES.join(',')}
           multiple
           onChange={handleFileInput}
           className="hidden"
@@ -112,15 +116,16 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
               strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth="2"
-              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+              d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
             />
           </svg>
           <p className="text-sm text-gray-500">
-            Drop images here or click to upload
+            Drag and drop or click to upload files
           </p>
-          <p className="text-xs text-gray-400 mt-1">
-            Supported formats: JPEG, PNG, WEBP (max {maxImages} files)
-          </p>
+          <div className="text-xs text-gray-400 mt-1 space-y-0.5">
+            <p>Images: JPEG, PNG, WEBP • Documents: PDF, TXT, DOC, DOCX</p>
+            <p>Maximum {maxImages} files</p>
+          </div>
         </label>
       </div>
 
@@ -132,9 +137,40 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
               key={image.id}
               className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-lg group hover:bg-gray-100 transition-colors duration-200"
             >
-              <span className="text-sm text-gray-700 truncate">
-                {image.file.name}
-              </span>
+              <div className="flex items-center gap-2">
+                {ACCEPTED_IMAGE_TYPES.includes(image.file.type) ? (
+                  <svg
+                    className="w-4 h-4 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
+                  </svg>
+                ) : (
+                  <svg
+                    className="w-4 h-4 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
+                  </svg>
+                )}
+                <span className="text-sm text-gray-700 truncate">
+                  {image.file.name}
+                </span>
+              </div>
               <button
                 type="button"
                 onClick={() => handleDeleteImage(image.id)}
