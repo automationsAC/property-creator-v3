@@ -78,7 +78,7 @@ const PropertyForm = () => {
                   value={field.value}
                   onChange={(e) => handleUrlChange(field.id, e.target.value)}
                   className="w-full px-4 py-3 border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all duration-200"
-                  placeholder="https://airbnb.com/casa-blanca, etc."
+                  placeholder="https://airbnb.com/casa-blanca,  xyzetc."
                   required
                 />
                 {urlFields.length > 1 && (
