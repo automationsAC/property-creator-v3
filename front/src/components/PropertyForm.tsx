@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { ImageUpload, ImageFile } from './ImageUpload';
 
 interface UrlField {
   id: number;
@@ -31,6 +32,7 @@ const PLACE_TYPES = [
 type PlaceType = typeof PLACE_TYPES[number];
 
 const MAX_URLS = 3;
+const MAX_IMAGES = 5;
 
 const getUrlPlaceholder = (index: number) => {
   switch (index) {
@@ -52,6 +54,7 @@ const PropertyForm = () => {
   ]);
   const [urlFields, setUrlFields] = useState<UrlField[]>([{ id: 1, value: '' }]);
   const [notes, setNotes] = useState('');
+  const [images, setImages] = useState<ImageFile[]>([]);
 
   const handleAddPlaceField = () => {
     const newId = placeFields.length + 1;
@@ -110,7 +113,8 @@ const PropertyForm = () => {
       propertyName,
       places: placeFields,
       urls: urlFields,
-      notes
+      notes,
+      images: images.map(img => img.file)
     });
     // Handle form submission here
   };
@@ -299,6 +303,13 @@ const PropertyForm = () => {
             style={{ resize: 'vertical' }}
           />
         </div>
+
+        {/* Image Upload Component */}
+        <ImageUpload
+          images={images}
+          onImagesChange={setImages}
+          maxImages={MAX_IMAGES}
+        />
 
         {/* Submit Button */}
         <button
