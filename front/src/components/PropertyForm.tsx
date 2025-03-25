@@ -55,6 +55,11 @@ const PropertyForm = () => {
   const [urlFields, setUrlFields] = useState<UrlField[]>([{ id: 1, value: '' }]);
   const [notes, setNotes] = useState('');
   const [images, setImages] = useState<ImageFile[]>([]);
+  const [errors, setErrors] = useState<{
+    propertyName?: string;
+    places?: string;
+    urls?: string;
+  }>({});
 
   const handleAddPlaceField = () => {
     const newId = placeFields.length + 1;
@@ -107,16 +112,41 @@ const PropertyForm = () => {
     setUrlFields(updatedFields);
   };
 
+  const validateForm = () => {
+    const newErrors: typeof errors = {};
+
+    if (!propertyName.trim()) {
+      newErrors.propertyName = 'Property name is required';
+    }
+
+    const hasValidPlace = placeFields.some(place => place.count > 0);
+    if (!hasValidPlace) {
+      newErrors.places = 'At least one place with count greater than 0 is required';
+    }
+
+    const hasValidUrl = urlFields.some(url => url.value.trim() !== '');
+    if (!hasValidUrl) {
+      newErrors.urls = 'At least one property URL is required';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log({
-      propertyName,
-      places: placeFields,
-      urls: urlFields,
-      notes,
-      images: images.map(img => img.file)
-    });
-    // Handle form submission here
+    const isValid = validateForm();
+
+    if (isValid) {
+      console.log({
+        propertyName,
+        places: placeFields,
+        urls: urlFields,
+        notes,
+        images: images.map(img => img.file)
+      });
+      // Handle form submission here
+    }
   };
 
   return (
@@ -131,11 +161,18 @@ const PropertyForm = () => {
             type="text"
             id="propertyName"
             value={propertyName}
-            onChange={(e) => setPropertyName(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-colors duration-200 text-[14px] text-gray-700 font-normal placeholder:text-gray-400 placeholder:text-sm placeholder:font-normal"
+            onChange={(e) => {
+              setPropertyName(e.target.value);
+              if (errors.propertyName) {
+                setErrors(prev => ({ ...prev, propertyName: undefined }));
+              }
+            }}
+            className={`w-full px-4 py-3 border ${errors.propertyName ? 'border-red-300' : 'border-gray-200'} rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-colors duration-200 text-[14px] text-gray-700 font-normal placeholder:text-gray-400 placeholder:text-sm placeholder:font-normal`}
             placeholder="Villa Vanilla, Casa Blanca, etc."
-            required
           />
+          {errors.propertyName && (
+            <p className="text-sm text-red-500 mt-1">{errors.propertyName}</p>
+          )}
         </div>
 
         {/* Place Fields */}
@@ -150,9 +187,13 @@ const PropertyForm = () => {
                   <select
                     id={`placeType-${field.id}`}
                     value={field.type}
-                    onChange={(e) => handlePlaceTypeChange(field.id, e.target.value as PlaceType)}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-colors duration-200 text-[14px] text-gray-700 font-normal bg-white cursor-pointer appearance-none"
-                    required
+                    onChange={(e) => {
+                      handlePlaceTypeChange(field.id, e.target.value as PlaceType);
+                      if (errors.places) {
+                        setErrors(prev => ({ ...prev, places: undefined }));
+                      }
+                    }}
+                    className={`w-full px-4 py-3 border ${errors.places ? 'border-red-300' : 'border-gray-200'} rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-colors duration-200 text-[14px] text-gray-700 font-normal bg-white cursor-pointer appearance-none`}
                   >
                     {PLACE_TYPES.map((type) => (
                       <option key={type} value={type} className="py-2">
@@ -182,10 +223,14 @@ const PropertyForm = () => {
                     type="number"
                     id={`placeCount-${field.id}`}
                     value={field.count}
-                    onChange={(e) => handlePlaceCountChange(field.id, parseInt(e.target.value) || 1)}
+                    onChange={(e) => {
+                      handlePlaceCountChange(field.id, parseInt(e.target.value) || 1);
+                      if (errors.places) {
+                        setErrors(prev => ({ ...prev, places: undefined }));
+                      }
+                    }}
                     min="1"
-                    className="w-full px-4 py-3 border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-colors duration-200 text-[14px] text-gray-700 font-normal"
-                    required
+                    className={`w-full px-4 py-3 border ${errors.places ? 'border-red-300' : 'border-gray-200'} rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-colors duration-200 text-[14px] text-gray-700 font-normal`}
                   />
                 </div>
                 {placeFields.length > 1 && (
@@ -214,6 +259,9 @@ const PropertyForm = () => {
               </div>
             </div>
           ))}
+          {errors.places && (
+            <p className="text-sm text-red-500 mt-1">{errors.places}</p>
+          )}
 
           {/* Add Place Text Link */}
           <div className="flex items-center justify-between pt-1">
@@ -239,10 +287,14 @@ const PropertyForm = () => {
                   type="url"
                   id={`url-${field.id}`}
                   value={field.value}
-                  onChange={(e) => handleUrlChange(field.id, e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-colors duration-200 text-[14px] text-gray-700 font-normal placeholder:text-gray-400 placeholder:text-sm placeholder:font-normal"
+                  onChange={(e) => {
+                    handleUrlChange(field.id, e.target.value);
+                    if (errors.urls) {
+                      setErrors(prev => ({ ...prev, urls: undefined }));
+                    }
+                  }}
+                  className={`w-full px-4 py-3 border ${errors.urls ? 'border-red-300' : 'border-gray-200'} rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-colors duration-200 text-[14px] text-gray-700 font-normal placeholder:text-gray-400 placeholder:text-sm placeholder:font-normal`}
                   placeholder={getUrlPlaceholder(index)}
-                  required
                 />
                 {urlFields.length > 1 && (
                   <button
@@ -270,6 +322,9 @@ const PropertyForm = () => {
               </div>
             </div>
           ))}
+          {errors.urls && (
+            <p className="text-sm text-red-500 mt-1">{errors.urls}</p>
+          )}
 
           {/* Add URL Text Link */}
           <div className="flex items-center justify-between pt-1">
@@ -314,7 +369,7 @@ const PropertyForm = () => {
         {/* Submit Button */}
         <button
           type="submit"
-          className="w-full sm:w-auto sm:min-w-[160px] flex justify-center items-center py-2.5 px-6 border border-transparent rounded-xl text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 transition-all duration-200 mt-8 mx-auto shadow-sm hover:shadow-md disabled:opacity-70 disabled:cursor-not-allowed gap-2 cursor-pointer"
+          className="w-full sm:w-auto sm:min-w-[160px] flex justify-center items-center py-2.5 px-6 border border-transparent rounded-xl text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 transition-all duration-200 mt-8 mx-auto shadow-sm hover:shadow-md gap-2 cursor-pointer"
         >
           Create Property
           <svg
